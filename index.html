@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ulangan Matematika - Aturan Sinus, Kosinus, & Luas Segitiga</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Library Render Matematika (MathJax) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-shapes text-2xl text-amber-400"></i>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Ulangan Harian Matematika</h1>
+                    <p class="text-xs text-indigo-200">Materi: Aturan Sinus, Kosinus, & Luas Segitiga (Total Tepat 20 Soal - 90 Menit)</p>
+                </div>
+            </div>
+            <div id="headerTimer" class="hidden items-center bg-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-600">
+                <i class="far fa-clock text-amber-400 mr-2"></i>
+                <span id="timerDisplay" class="font-mono font-bold text-sm">90:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- 1. Form Identitas Siswa -->
+        <div id="identitasSection" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="mb-5 rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-black">
+                <video id="introVideo" controls playsinline class="w-full h-auto rounded-xl">
+                    <source src="video.mp4" type="video/mp4">
+                    Browser Anda tidak mendukung pemutar video.
+                </video>
+            </div>
+
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800">Identitas Peserta Ulangan</h2>
+                <p class="text-xs text-slate-500 mt-1">Silakan tonton video penjelasannya terlebih dahulu, lalu isi data diri Anda untuk memulai ulangan.</p>
+            </div>
+
+            <div id="blockedAlert" class="hidden mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-lg mr-3 mt-0.5"></i>
+                    <div>
+                        <strong class="font-semibold block mb-1">Akses Ditolak / Sudah Mengerjakan</strong>
+                        <span id="blockedMessage">Siswa dengan Kelas dan Nomor Absen ini tercatat telah menyelesaikan ulangan.</span>
+                        <div class="mt-3">
+                            <button type="button" onclick="openTokenModal()" class="text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-md transition shadow-sm inline-flex items-center space-x-1">
+                                <i class="fas fa-key text-[10px]"></i>
+                                <span>Buka Akses Ulang (Khusus Guru)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="checkingLoader" class="hidden mb-4 p-3 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl text-xs flex items-center justify-center space-x-2">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Memeriksa status pengerjaan...</span>
+            </div>
+
+            <form id="startForm" onsubmit="event.preventDefault(); startQuiz();" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nama Lengkap</label>
+                    <input type="text" id="namaSiswa" required placeholder="Masukkan nama sesuai presensi" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Kelas</label>
+                        <select id="kelasSiswa" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                            <option value="" disabled selected>Pilih Kelas</option>
+                            <option value="XI F3">XI F3</option>
+                            <option value="XI F4">XI F4</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nomor Absen</label>
+                        <select id="absenSiswa" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                            <option value="" disabled selected>Pilih Absen</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Token Pengerjaan</label>
+                    <input type="password" id="tokenSiswa" required placeholder="Masukkan token pengerjaan" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm outline-none">
+                </div>
+
+                <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbyXQBplOSdKCecERA6ktHLWt-FqSMfG9HNbaZX0BFSf4g7EgsFdKVLCVnNNJTdyWHkj/exec">
+
+                <button type="submit" id="btnStartQuiz" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg shadow-sm transition flex items-center justify-center space-x-2">
+                    <span>Mulai Ulangan Matematika (Tepat 20 Soal)</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Halaman Pengerjaan Kuis -->
+        <div id="quizSection" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-3 space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
+                        <span id="questionNumBadge" class="text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full">Halaman <span id="currentQuestionNum">1</span></span>
+                        <div class="text-xs text-slate-500">
+                            Terjawab: <span id="answeredCount" class="font-bold text-slate-700">0</span> / <span>20 Item Soal</span>
+                        </div>
+                    </div>
+
+                    <div id="questionText" class="text-base md:text-lg font-medium text-slate-800 mb-6 leading-relaxed">
+                        <!-- Dipopulasikan via JS -->
+                    </div>
+
+                    <div id="optionsContainer" class="space-y-6">
+                        <!-- Dipopulasikan via JS -->
+                    </div>
+
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
+                        <button id="prevBtn" type="button" onclick="navigateQuestion(-1)" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 text-sm font-medium flex items-center space-x-2 transition disabled:opacity-50">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                            <span>Sebelumnya</span>
+                        </button>
+                        
+                        <button id="nextBtn" type="button" onclick="navigateQuestion(1)" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center space-x-2 transition">
+                            <span>Berikutnya</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigasi Halaman Soal -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sticky top-20">
+                    <h3 class="font-semibold text-sm text-slate-700 mb-3 border-b pb-2">Navigasi Halaman Soal</h3>
+                    <div id="questionGrid" class="grid grid-cols-5 gap-2 max-h-[380px] overflow-y-auto custom-scrollbar p-1">
+                        <!-- Tombol navigasi di-render via JS -->
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                        <div class="flex items-center space-x-2 text-xs text-slate-600">
+                            <span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span>
+                            <span>Sedang Dikerjakan</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-600">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span>Sudah Dijawab Lengkap</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-600">
+                            <span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block"></span>
+                            <span>Belum Dijawab</span>
+                        </div>
+
+                        <button type="button" onclick="confirmSubmission()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm shadow-sm transition flex items-center justify-center space-x-2">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                            <span>Selesai & Kirim Jawaban</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Halaman Hasil -->
+        <div id="resultSection" class="hidden max-w-xl mx-auto space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 text-center">
+                <div id="resIconContainer" class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 id="resTitle" class="text-2xl font-bold text-slate-800">Ulangan Selesai!</h2>
+                <p id="resSubtitle" class="text-sm text-slate-500 mt-1">Jawaban Anda telah tersimpan secara otomatis ke Google Sheets guru.</p>
+
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Nama Siswa</span>
+                        <span id="resNama" class="font-bold text-slate-800 text-sm truncate block mt-1">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Kelas / Absen</span>
+                        <span id="resKelasAbsen" class="font-bold text-slate-800 text-sm block mt-1">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Benar / Total Soal</span>
+                        <span id="resSkor" class="font-bold text-indigo-600 text-base block mt-1">0 / 20</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+                        <span class="block text-xs text-slate-500 uppercase font-semibold">Nilai Akhir</span>
+                        <span id="resNilai" class="font-bold text-emerald-600 text-xl block mt-1">0</span>
+                    </div>
+                </div>
+
+                <!-- Notifikasi Status Pengiriman -->
+                <div id="submissionStatus" class="mt-6 p-4 bg-emerald-50 rounded-xl text-xs font-semibold text-emerald-700 flex flex-col items-center justify-center space-y-2 border border-emerald-200">
+                    <div class="flex items-center space-x-2">
+                        <i id="statusIcon" class="fas fa-cloud-upload-alt text-base"></i>
+                        <span id="statusText">Status: Data Jawaban Berhasil Terkirim</span>
+                    </div>
+                    <button id="btnRetrySubmit" type="button" onclick="retrySubmitData()" class="hidden mt-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm items-center space-x-1">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Coba Kirim Ulang Sekarang</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Token Guru -->
+    <div id="tokenModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center space-x-2">
+                    <i class="fas fa-user-shield text-indigo-600"></i>
+                    <span>Verifikasi Token Guru</span>
+                </h3>
+                <button type="button" onclick="closeTokenModal()" class="text-slate-400 hover:text-slate-600 text-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">Masukkan token guru untuk membuka izin pengerjaan ulang.</p>
+            <div>
+                <input type="password" id="inputTokenGuru" placeholder="Masukkan Token Guru" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm outline-none">
+                <p id="tokenErrorMsg" class="hidden text-xs text-rose-600 font-semibold mt-1">Token salah! Akses ditolak.</p>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeTokenModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button type="button" onclick="verifyTeacherToken()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Buka Akses</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SECRET_TEACHER_TOKEN = "GURU2026";
+        const STUDENT_QUIZ_TOKEN = "MTK2026"; 
+        const TOTAL_DURATION_SECONDS = 90 * 60; 
+        const TARGET_ITEM_COUNT = 20; // TOTAL TEPAT 20 ITEM SOAL YANG DIKERJAKAN SISWA
+
+        const matchingOptionsB = [
+            { code: "A", text: "√19" },
+            { code: "B", text: "60°" },
+            { code: "C", text: "5/7" },
+            { code: "D", text: "14" },
+            { code: "E", text: "7" },
+            { code: "F", text: "135°" },
+            { code: "G", text: "3√6" },
+            { code: "H", text: "-1/4" },
+            { code: "I", text: "6√3" },
+            { code: "J", text: "120°" }
+        ];
+
+        const pairQuestionsData = {
+            "41_42": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus A:</strong>Sebuah tim surveyor sedang memetakan sebidang tanah berbentuk segi empat $ABCD$. Untuk menentukan luas dan batas-batas tanah, dilakukan pengukuran sudut dan jarak dari titik kontrol. Dari hasil pengukuran diperoleh:<br>• $AB = 40\\text{ m}$<br>• $BC = 30\\text{ m}$<br>• $CD = 20\\text{ m}$<br>• $\\angle ABC = 90^\\circ$<br>• $\\angle ADC = 60^\\circ$",
+                q1: { type: "multiple", title: "Pertanyaan 1", text: "Berdasarkan informasi di atas, tentukan kebenaran dari pernyataan-pernyataan berikut:", options: ["Panjang diagonal $AC$ adalah $50\\text{ m}$.", "Panjang sisi $AD$ dapat dihitung secara pasti hanya dengan aturan sinus pada $\\triangle ADC$.", "Jika panjang $AD = x$, maka $x$ memenuhi persamaan kuadrat $x^2 - 20x - 2100 = 0$.", "Panjang sisi $AD$ adalah $10 + 10\\sqrt{22}\\text{ m}$."], answer: [0, 2, 3] },
+                q2: { type: "single", title: "Pertanyaan 2", text: "Berapakah luas total lahan $ABCD$ tersebut dalam bentuk akar yang paling sederhana!", options: ["A. $(600 + 150,5\\sqrt{3})\\text{ m}^2$", "B. $(600 + 284,5\\sqrt{3})\\text{ m}^2$", "C. $(500 + 250,3\\sqrt{3})\\text{ m}^2$", "D. $(600 + 500,5\\sqrt{3})\\text{ m}^2$", "E. $850\\sqrt{3}\\text{ m}^2$"], answer: 1 }
+            },
+            "43_44": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus B:</strong>Dua buah kapal, Kapal Murni dan Kapal Bahari, berlayar dari pelabuhan utama $P$ pada waktu yang sama. Kapal Murni berlayar dengan jurusan tiga angka $040^\\circ$ dengan kecepatan konstan $20\\text{ knot}$ ($1\\text{ knot} = 1\\text{ mil laut/jam}$). Kapal Bahari berlayar dengan jurusan tiga angka $160^\\circ$ dengan kecepatan konstan $15\\text{ knot}$.<br><div class='mt-3 mb-2 text-center'><img src='43-44.png' alt='Ilustrasi Kapal Murni dan Kapal Bahari' class='mx-auto rounded-xl shadow-md max-h-80 w-auto object-contain border border-slate-200'></div>",
+                q1: { type: "single", title: "Pertanyaan 1", text: "Berapakah jarak antara Kapal Murni dan Kapal Bahari setelah berlayar selama 2 jam?", options: ["A. $10\\sqrt{37}\\text{ mil}$", "B. $20\\sqrt{13}\\text{ mil}$", "C. $10\\sqrt{13}\\text{ mil}$", "D. $20\\sqrt{37}\\text{ mil}$", "E. $70\\text{ mil}$"], answer: 0 },
+                q2: { type: "single", title: "Pertanyaan 2", text: "Setelah 2 jam, Kapal Murni berhenti karena gangguan mesin. Kapal Bahari langsung berputar arah menuju posisi Kapal Murni untuk memberikan bantuan. Besar sudut arah (jurusan tiga angka) yang harus diambil oleh Kapal Bahari untuk menuju Kapal Murni adalah...", options: ["A. $014,7^\\circ$", "B. $145,3^\\circ$", "C. $214,7^\\circ$", "D. $305,3^\\circ$", "E. $340,0^\\circ$"], answer: 0 }
+            },
+            "45_46": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus C:</strong>Sebuah dinas pekerjaan umum merencanakan pembangunan jembatan gantung menyeberangi lembah dari titik $A$ ke titik $B$. Karena kondisi medan, jarak $AB$ tidak dapat diukur langsung. Seorang insinyur menentukan titik kontrol $C$ di tepi lembah sedemikian rupa sehingga:<br>• Jarak $AC = 120\\text{ meter}$<br>• Sudut $\\angle CAB = 45^\\circ$<br>• Sudut $\\angle ACB = 105^\\circ$",
+                q1: { type: "single", title: "Pertanyaan 1", text: "Panjang jembatan gantung $AB$ yang harus dibangun adalah...", options: ["A. $60\\sqrt{6}\\text{ meter}$", "B. $120(\\sqrt{2} + \\sqrt{3})\\text{ meter}$", "C. $120(\\sqrt{3} - \\sqrt{6})\\text{ meter}$", "D. $60(\\sqrt{6} + \\sqrt{2})\\text{ meter}$", "E. $60\\sqrt{2}\\text{ meter}$"], answer: 3 },
+                q2: { type: "matching_sub", title: "Pertanyaan 2", text: "Jodohkan aspek teknis proyek berikut dengan nilai yang tepat berdasarkan perhitungan:", items: [{ text: "Besar sudut $\\angle ABC$", ans: "A" }, { text: "Panjang garis datar dari $C$ ke $B$ ($BC$)", ans: "B" }, { text: "Tinggi elevasi maksimum segitiga dari titik $C$ ke garis $AB$", ans: "C" }], options: [{ code: "A", text: "$30°$" }, { code: "B", text: "$120√2\\text{ m}$" }, { code: "C", text: "$60√2\\text{ m}$" }] }
+            },
+            "47_48": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus D:</strong>Dua stasiun radar $S_1$ dan $S_2$ berjarak $10\\text{ km}$ satu sama lain pada garis lurus Barat-Timur ($S_1$ di sebelah Barat). Kedua stasiun mendeteksi sinyal dari sebuah pesawat udara $P$ yang terbang di atas area tersebut. Sinyal radar menunjukkan bahwa sudut azimuth/arah penerimaan sinyal dari $S_1$ terhadap $P$ adalah $N60^\\circ E$ ($60^\\circ$ dari Utara ke arah Timur), sedangkan dari $S_2$ terhadap $P$ adalah $N30^\\circ W$ ($30^\\circ$ dari Utara ke arah Barat).<br><div class='mt-3 mb-2 text-center'><img src='47-48.png' alt='Ilustrasi Stasiun Radar dan Pesawat Udara' class='mx-auto rounded-xl shadow-md max-h-80 w-auto object-contain border border-slate-200'></div>",
+                q1: { type: "single", title: "Pertanyaan 1", text: "Jarak pesawat $P$ dari stasiun radar $S_1$ adalah...", options: ["A. $5\\text{ km}$", "B. $5\\sqrt{2}\\text{ km}$", "C. $5\\sqrt{3}\\text{ km}$", "D. $10\\sqrt{3}\\text{ km}$", "E. $10\\text{ km}$"], answer: 2 },
+                q2: { type: "single", title: "Pertanyaan 2", text: "Jarak terdekat (jarak tegak lurus) pesawat $P$ terhadap garis lurus yang menghubungkan stasiun $S_1$ dan $S_2$ adalah...", options: ["A. $2,5\\sqrt{3}\\text{ km}$", "B. $5\\sqrt{3}\\text{ km}$", "C. $2,5\\sqrt{2}\\text{ km}$", "D. $5\\text{ km}$", "E. $15/2\\text{ km}$"], answer: 0 }
+            },
+            "49_50": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus E:</strong>Seorang arsitek merancang kuda-kuda atap berbentuk segitiga $ABC$ tidak simetris. Panjang bentang bawah $AB = 12\\text{ meter}$. Kemiringan atap sisi kiri $\\angle A = 30^\\circ$ dan kemiringan atap sisi kanan $\\angle B = 45^\\circ$.",
+                q1: { type: "multiple", title: "Pertanyaan 1", text: "Manakah dari pernyataan berikut yang benar terkait ukuran kayu penyangga atap tersebut? (Gunakan aproksimasi $\\sqrt{3} \\approx 1,732$ dan $\\sqrt{2} \\approx 1,414$)", options: ["Besar sudut puncak atap $\\angle C = 105^\\circ$.", "Panjang kayu atap sisi kiri ($AC$) adalah $12(\\sqrt{3}-1)\\text{ m}$.", "Panjang kayu atap sisi kanan ($BC$) adalah $6(\\sqrt{6}-\\sqrt{2})\\text{ m}$.", "Sisi $AC$ lebih panjang daripada sisi $BC$."], answer: [0, 1, 2, 3] },
+                q2: { type: "single", title: "Pertanyaan 2", text: "Jika biaya bahan kayu untuk atap adalah Rp 150.000 per meter, total biaya yang diperlukan khusus untuk pembelian kayu penyangga miring $AC$ dan $BC$ (dibulatkan ke ribuan rupiah terdekat) adalah...", options: ["A. Rp 2.050.000,-", "B. Rp 2.145.000,-", "C. Rp 2.249.000,-", "D. Rp 2.315.000,-", "E. Rp 2.450.000,-"], answer: 2 }
+            },
+            "51_52": {
+                info: "<strong class='text-indigo-900 block mb-1'>Informasi Studi Kasus F:</strong>Pemerintah kota merencanakan pembuatan taman berbentuk segitiga sembarang $ABC$. Dari titik sudut $A$, diukur dua sisi pagar taman yaitu sisi $AB = 30\\text{ meter}$ dan sisi $AC = 40\\text{ meter}$. Namun, sudut $\\angle A$ tidak diukur secara langsung. Tim pengukur hanya mengukur panjang batas pagar ketiga $BC = 50\\text{ meter}$.",
+                q1: { type: "single", title: "Pertanyaan 1", text: "Luas tanah taman kota $ABC$ tersebut adalah...", options: ["A. $300\\text{ m}^2$", "B. $400\\text{ m}^2$", "C. $600\\text{ m}^2$", "D. $1.200\\text{ m}^2$", "E. $2.400\\text{ m}^2$"], answer: 2 },
+                q2: { type: "single", title: "Pertanyaan 2", text: "Jika di tengah taman tersebut akan ditanami rumput sintetis dengan biaya Rp 85.000 per $\\text{m}^2$, berapakah total biaya yang dibutuhkan untuk membeli rumput seluruh taman?", options: ["A. Rp 25.500.000,-", "B. Rp 34.000.000,-", "C. Rp 51.000.000,-", "D. Rp 68.000.000,-", "E. Rp 102.000.000,-"], answer: 2 }
+            }
+        };
+
+        const bankSoalMaster = [
+            // 1-20: PG Standar (Modul A)
+            { id: 1, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui besar $\\angle A = 30^\\circ$, $\\angle B = 45^\\circ$, dan panjang sisi $a = 6\\text{ cm}$. Panjang sisi $b$ adalah...", options: ["A. $3\\sqrt{2}\\text{ cm}$", "B. $6\\sqrt{2}\\text{ cm}$", "C. $9\\sqrt{2}\\text{ cm}$", "D. $12\\sqrt{2}\\text{ cm}$", "E. $6\\sqrt{3}\\text{ cm}$"], answer: 1 },
+            { id: 2, category: "PG_A", type: "single", text: "Pada $\\triangle PQR$, diketahui $p = 10\\text{ cm}$, $q = 10\\sqrt{3}\\text{ cm}$, dan $\\angle P = 30^\\circ$. Besar $\\angle Q$ yang lancip adalah...", options: ["A. $30^\\circ$", "B. $45^\\circ$", "C. $60^\\circ$", "D. $90^\\circ$", "E. $120^\\circ$"], answer: 2 },
+            { id: 3, category: "PG_A", type: "single", text: "Pada $\\triangle KLM$, diketahui panjang $k = 4\\text{ cm}$, $l = 6\\text{ cm}$, dan sudut apit $\\angle M = 60^\\circ$. Panjang sisi $m$ adalah...", options: ["A. $2\\sqrt{7}\\text{ cm}$", "B. $2\\sqrt{19}\\text{ cm}$", "C. $\\sqrt{28}\\text{ cm}$", "D. $2\\sqrt{13}\\text{ cm}$", "E. $2\\sqrt{5}\\text{ cm}$"], answer: 0 },
+            { id: 4, category: "PG_A", type: "single", text: "Diketahui $\\triangle ABC$ dengan panjang $a = 7\\text{ cm}$, $b = 8\\text{ cm}$, dan $c = 9\\text{ cm}$. Nilai dari $\\cos C$ adalah...", options: ["A. $\\frac{1}{7}$", "B. $\\frac{2}{7}$", "C. $\\frac{3}{7}$", "D. $\\frac{4}{7}$", "E. $\\frac{5}{7}$"], answer: 1 },
+            { id: 5, category: "PG_A", type: "single", text: "Dalam $\\triangle ABC$, jika $\\frac{a}{\\sin A} = 12$, maka nilai dari $\\frac{c}{\\sin C}$ adalah...", options: ["A. $6$", "B. $12$", "C. $18$", "D. $24$", "E. $36$"], answer: 1 },
+            { id: 6, category: "PG_A", type: "single", text: "Jika pada $\\triangle ABC$ berlaku $a^2 = b^2 + c^2 + bc$, maka besar sudut $A$ adalah...", options: ["A. $30^\\circ$", "B. $60^\\circ$", "C. $90^\\circ$", "D. $120^\\circ$", "E. $150^\\circ$"], answer: 3 },
+            { id: 7, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui $b = 8\\text{ cm}$, $c = 5\\text{ cm}$, dan $\\angle A = 60^\\circ$. Panjang sisi $a$ adalah...", options: ["A. $7\\text{ cm}$", "B. $\\sqrt{89}\\text{ cm}$", "C. $\\sqrt{129}\\text{ cm}$", "D. $9\\text{ cm}$", "E. $10\\text{ cm}$"], answer: 0 },
+            { id: 8, category: "PG_A", type: "single", text: "Pada segitiga $ABC$, diketahui sudut $A = 45^\\circ$, sudut $B = 60^\\circ$, dan panjang $a = 4\\sqrt{2}\\text{ cm}$. Panjang sisi $b$ adalah...", options: ["A. $4\\sqrt{3}\\text{ cm}$", "B. $2\\sqrt{6}\\text{ cm}$", "C. $8\\sqrt{3}\\text{ cm}$", "D. $4\\sqrt{6}\\text{ cm}$", "E. $6\\text{ cm}$"], answer: 0 },
+            { id: 9, category: "PG_A", type: "single", text: "Pada $\\triangle XYZ$, diketahui $x = 3\\text{ cm}$, $y = 5\\text{ cm}$, dan $z = 7\\text{ cm}$. Nilai $\\cos Z$ adalah...", options: ["A. $-\\frac{1}{2}$", "B. $-\\frac{1}{3}$", "C. $\\frac{1}{2}$", "D. $\\frac{1}{3}$", "E. $-\\frac{1}{5}$"], answer: 0 },
+            { id: 10, category: "PG_A", type: "single", text: "Diketahui $\\triangle ABC$ dengan $\\angle A = 105^\\circ$, $\\angle B = 45^\\circ$, dan panjang $c = 10\\text{ cm}$. Panjang sisi $a$ adalah...", options: ["A. $5(\\sqrt{2} + \\sqrt{3})\\text{ cm}$", "B. $10(\\sqrt{2} - \\sqrt{3})\\text{ cm}$", "C. $5(\\sqrt{6} + \\sqrt{2})\\text{ cm}$", "D. $5(\\sqrt{6} - \\sqrt{2})\\text{ cm}$", "E. $10(\\sqrt{6} + \\sqrt{2})\\text{ cm}$"], answer: 2 },
+            { id: 11, category: "PG_A", type: "single", text: "Jika $a = 6\\text{ cm}$, $b = 8\\text{ cm}$, dan $c = 10\\text{ cm}$ pada $\\triangle ABC$, maka nilai $\\cos B$ adalah...", options: ["A. $0,8$", "B. $0,6$", "C. $0,5$", "D. $0,4$", "E. $0,2$"], answer: 1 },
+            { id: 12, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui $\\sin A = \\frac{3}{5}$, $\\sin B = \\frac{4}{5}$, dan $a = 9\\text{ cm}$. Panjang sisi $b$ adalah...", options: ["A. $12\\text{ cm}$", "B. $15\\text{ cm}$", "C. $16\\text{ cm}$", "D. $18\\text{ cm}$", "E. $20\\text{ cm}$"], answer: 0 },
+            { id: 13, category: "PG_A", type: "single", text: "Aturan kosinus yang benar untuk menentukan panjang sisi $b$ pada $\\triangle ABC$ adalah...", options: ["A. $b^2 = a^2 + c^2 - 2ac \\cos B$", "B. $b^2 = a^2 + c^2 + 2ac \\cos B$", "C. $b^2 = a^2 - c^2 - 2ac \\cos B$", "D. $b^2 = a^2 + c^2 - 2ab \\cos B$", "E. $b^2 = a^2 + c^2 - 2ac \\sin B$"], answer: 0 },
+            { id: 14, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui $\\angle A = 60^\\circ$, $\\angle C = 45^\\circ$, dan $a = 12\\text{ cm}$. Nilai dari $c$ adalah...", options: ["A. $4\\sqrt{6}\\text{ cm}$", "B. $6\\sqrt{6}\\text{ cm}$", "C. $8\\sqrt{6}\\text{ cm}$", "D. $12\\sqrt{2}\\text{ cm}$", "E. $4\\sqrt{3}\\text{ cm}$"], answer: 0 },
+            { id: 15, category: "PG_A", type: "single", text: "Sebuah segitiga memiliki panjang sisi $a = 3$, $b = 4$, dan $c = 2$. Sisi yang berhadapan dengan sudut terkecil adalah...", options: ["A. Sisi $a$", "B. Sisi $b$", "C. Sisi $c$", "D. Sisi $a$ dan $b$", "E. Sisi $b$ dan $c$"], answer: 2 },
+            { id: 16, category: "PG_A", type: "single", text: "Nilai dari $\\cos 120^\\circ$ yang sering digunakan dalam aturan kosinus sudut tumpul adalah...", options: ["A. $\\frac{1}{2}$", "B. $-\\frac{1}{2}$", "C. $\\frac{1}{2}\\sqrt{3}$", "D. $-\\frac{1}{2}\\sqrt{3}$", "E. $-1$"], answer: 1 },
+            { id: 17, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, jika $a = 5\\text{ cm}$, $c = 6\\text{ cm}$, dan $\\cos B = \\frac{1}{5}$, maka panjang sisi $b$ adalah...", options: ["A. $\\sqrt{48}\\text{ cm}$", "B. $\\sqrt{50}\\text{ cm}$", "C. $\\sqrt{61}\\text{ cm}$", "D. $\\sqrt{73}\\text{ cm}$", "E. $7\\text{ cm}$"], answer: 4 },
+            { id: 18, category: "PG_A", type: "single", text: "Dalam $\\triangle ABC$, rasio $\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}$ sama dengan...", options: ["A. Luas segitiga", "B. Keliling segitiga", "C. Jari-jari lingkaran dalam segitiga", "D. Diameter lingkaran luar segitiga", "E. Jari-jari lingkaran luar segitiga"], answer: 3 },
+            { id: 19, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui $a = 4\\text{ cm}$, $b = 4\\text{ cm}$, dan $\\angle C = 90^\\circ$. Menggunakan aturan kosinus, panjang $c$ adalah...", options: ["A. $4\\text{ cm}$", "B. $4\\sqrt{2}\\text{ cm}$", "C. $8\\text{ cm}$", "D. $16\\text{ cm}$", "E. $2\\sqrt{2}\\text{ cm}$"], answer: 1 },
+            { id: 20, category: "PG_A", type: "single", text: "Pada $\\triangle ABC$, diketahui $a = 10\\text{ cm}$, $\\angle A = 30^\\circ$, dan $\\angle C = 105^\\circ$. Besar sudut $B$ adalah...", options: ["A. $30^\\circ$", "B. $45^\\circ$", "C. $60^\\circ$", "D. $75^\\circ$", "E. $90^\\circ$"], answer: 1 },
+
+            // 21-30: MCMA Kompleks (Modul B)
+            { id: 21, category: "MCMA", type: "multiple", text: "Diketahui segitiga $ABC$ dengan panjang sisi $a = 6\\text{ cm}$, $b = 8\\text{ cm}$, dan $c = 10\\text{ cm}$. Manakah dari pernyataan berikut yang benar? (Jawaban bisa lebih dari satu)", options: ["Segitiga $ABC$ merupakan segitiga siku-siku di $C$.", "Nilai dari $\\sin C = 1$.", "Nilai dari $\\cos A = \\frac{4}{5}$.", "Luas segitiga $ABC$ adalah $24\\text{ cm}^2$.", "Segitiga $ABC$ merupakan segitiga sama sisi."], answer: [0, 1, 2, 3] },
+            { id: 22, category: "MCMA", type: "multiple", text: "Diketahui $\\triangle PQR$ dengan $p = 8\\text{ cm}$, $q = 8\\text{ cm}$, dan $\\angle R = 60^\\circ$. Manakah pernyataan yang sesuai? (Jawaban bisa lebih dari satu)", options: ["Segitiga $PQR$ adalah segitiga sama sisi.", "Panjang sisi $r = 8\\text{ cm}$.", "Besar $\\angle P = 60^\\circ$.", "Nilai $\\cos P = \\frac{1}{2}$.", "Besar $\\angle Q = 90^\\circ$."], answer: [0, 1, 2, 3] },
+            { id: 23, category: "MCMA", type: "multiple", text: "Pada $\\triangle ABC$, diketahui $\\frac{a}{\\sin A} = 10$. Pernyataan berikut yang benar adalah... (Jawaban bisa lebih dari satu)", options: ["Jika $\\sin B = \\frac{1}{2}$, maka panjang sisi $b = 5\\text{ cm}$.", "Diameter lingkaran luar segitiga $ABC$ adalah $10\\text{ cm}$.", "Jari-jari lingkaran luar segitiga $ABC$ adalah $10\\text{ cm}$.", "Jika $c = 5\\sqrt{3}\\text{ cm}$, maka besar $\\angle C$ bisa bernilai $60^\\circ$ atau $120^\\circ$.", "Keliling lingkaran luar segitiga $ABC$ adalah $20\\pi\\text{ cm}$."], answer: [0, 1, 3] },
+            { id: 24, category: "MCMA", type: "multiple", text: "Segitiga $ABC$ memiliki sisi $a = 5\\text{ cm}$, $b = 7\\text{ cm}$, dan $c = 9\\text{ cm}$. Pernyataan yang benar adalah... (Jawaban bisa lebih dari satu)", options: ["$\\angle C$ adalah sudut tumpul.", "Nilai $\\cos C < 0$.", "Nilai $\\cos A = \\frac{5}{6}$.", "Sisi terpanjang berada di hadapan sudut terkecil.", "Segitiga $ABC$ adalah segitiga siku-siku."], answer: [0, 1, 2] },
+            { id: 25, category: "MCMA", type: "multiple", text: "Dalam sebuah segitiga $ABC$, diketahui $\\angle A = 45^\\circ$ dan $\\angle B = 105^\\circ$. Sisi $c = 4\\text{ cm}$. Manakah pernyataan yang tepat? (Jawaban bisa lebih dari satu)", options: ["Besar $\\angle C = 30^\\circ$.", "Panjang sisi $a = 4\\sqrt{2}\\text{ cm}$.", "Panjang sisi $b = 2(\\sqrt{6} + \\sqrt{2})\\text{ cm}$.", "Rasio $\\frac{a}{\\sin A} = 8$.", "Luas segitiga tersebut adalah $16\\text{ cm}^2$."], answer: [0, 1, 2, 3] },
+            { id: 26, category: "MCMA", type: "multiple", text: "Diketahui hubungan sisi-sisi suatu segitiga $ABC$ memenuhi persamaan $c^2 = a^2 + b^2 - ab$. Manakah pernyataan yang BENAR? (Jawaban bisa lebih dari satu)", options: ["Besar $\\angle C = 60^\\circ$.", "Nilai $\\cos C = \\frac{1}{2}$.", "Nilai $\\sin C = \\frac{1}{2}\\sqrt{3}$.", "Segitiga tersebut dipastikan segitiga sama sisi.", "Nilai $\\tan C = 1$."], answer: [0, 1, 2] },
+            { id: 27, category: "MCMA", type: "multiple", text: "Diketahui segitiga $ABC$ dengan panjang sisi $a = 4\\text{ cm}$, $b = 5\\text{ cm}$, dan $c = 6\\text{ cm}$. Pernyataan yang benar adalah... (Jawaban bisa lebih dari satu)", options: ["$\\cos A = \\frac{3}{4}$.", "$\\cos B = \\frac{9}{16}$.", "Sudut $C$ adalah sudut terbesar.", "Segitiga ini merupakan segitiga lancip.", "$\\angle C = 90^\\circ$."], answer: [0, 1, 2, 3] },
+            { id: 28, category: "MCMA", type: "multiple", text: "Untuk sebarang $\\triangle ABC$, bentuk manakah yang ekuivalen berdasarkan Aturan Sinus dan Kosinus? (Jawaban bisa lebih dari satu)", options: ["$a \\sin B = b \\sin A$", "$a^2 + b^2 - c^2 = 2ab \\cos C$", "$\\frac{\\sin A}{a} = \\frac{\\sin B}{b}$", "$\\cos A = \\frac{a^2 - b^2 - c^2}{2bc}$", "$a^2 = b^2 + c^2 + 2bc \\cos A$"], answer: [0, 1, 2] },
+            { id: 29, category: "MCMA", type: "multiple", text: "Suatu kapal berlayar dari titik $O$ ke arah Timur sejauh $6\\text{ km}$, kemudian berbelok $60^\\circ$ ke arah Utara sejauh $10\\text{ km}$ mencapai titik $P$. Pernyataan berikut yang benar adalah... (Jawaban bisa lebih dari satu)", options: ["Sudut apit pada lintasan perjalanan kapal adalah $120^\\circ$.", "Jarak titik awal $O$ ke titik $P$ adalah $14\\text{ km}$.", "Kuadrat jarak $OP$ adalah $196$.", "Jarak $OP$ dapat dihitung menggunakan aturan sinus secara langsung tanpa aturan kosinus.", "Total jarak tempuh kapal adalah $20\\text{ km}$."], answer: [0, 1, 2] },
+            { id: 30, category: "MCMA", type: "multiple", text: "Diberikan segitiga $ABC$ dengan $a = 3$, $b = 4$, dan $\\angle C = 60^\\circ$. Manakah nilai yang benar? (Jawaban bisa lebih dari satu)", options: ["$c = \\sqrt{13}$", "Luas $\\triangle ABC = 3\\sqrt{3}$", "$\\sin A = \\frac{3\\sqrt{39}}{26}$", "$c^2 = 25 - 12 = 13$", "$c = 5$"], answer: [0, 1, 2, 3] },
+
+            // 31-40: Soal Menjodohkan Satuan (Modul C)
+            { id: 31, category: "MATCHING", type: "single_match", text: "Pada $\\triangle ABC$, $a = 4$, $b = 4\\sqrt{3}$, $\\angle A = 30^\\circ$. Nilai $\\angle B$ lancip adalah...", answer: "B" },
+            { id: 32, category: "MATCHING", type: "single_match", text: "Pada $\\triangle ABC$, $b = 3$, $c = 2$, $\\angle A = 120^\\circ$. Panjang sisi $a$ adalah...", answer: "A" },
+            { id: 33, category: "MATCHING", type: "single_match", text: "Pada $\\triangle ABC$, $a = 5$, $b = 6$, $c = 7$. Nilai dari $\\cos A$ adalah...", answer: "C" },
+            { id: 34, category: "MATCHING", type: "single_match", text: "Jika $a/\\sin A = 14$, maka diameter lingkaran luar segitiga adalah...", answer: "D" },
+            { id: 35, category: "MATCHING", type: "single_match", text: "Pada $\\triangle ABC$, $a = 8$, $c = 3$, $\\angle B = 60^\\circ$. Panjang sisi $b$ adalah...", answer: "E" },
+            { id: 36, category: "MATCHING", type: "single_match", text: "Dalam $\\triangle ABC$, jika $a^2 = b^2 + c^2 + \\sqrt{2}bc$, maka besar $\\angle A$ adalah...", answer: "F" },
+            { id: 37, category: "MATCHING", type: "single_match", text: "Jika $a = 6$, $\\angle A = 45^\\circ$, $\\angle B = 60^\\circ$, maka panjang $b$ adalah...", answer: "G" },
+            { id: 38, category: "MATCHING", type: "single_match", text: "Nilai $\\cos B$ jika $a = 3$, $b = 4$, $c = 2$ adalah...", answer: "H" },
+            { id: 39, category: "MATCHING", type: "single_match", text: "Pada $\\triangle ABC$ sama kaki dengan $a = b = 6$ dan $\\angle C = 120^\\circ$, panjang $c$ adalah...", answer: "I" },
+            { id: 40, category: "MATCHING", type: "single_match", text: "Besar sudut terbesar pada segitiga dengan sisi $3, 5, 7$ adalah...", answer: "J" },
+
+            // 41-52: Soal Berpasangan (Modul D1 - Bernilai 2 Soal)
+            { id: 41, category: "PAIR", type: "pair_group", pairKey: "41_42" },
+            { id: 42, category: "PAIR", type: "pair_group", pairKey: "43_44" },
+            { id: 43, category: "PAIR", type: "pair_group", pairKey: "45_46" },
+            { id: 44, category: "PAIR", type: "pair_group", pairKey: "47_48" },
+            { id: 45, category: "PAIR", type: "pair_group", pairKey: "49_50" },
+            { id: 46, category: "PAIR", type: "pair_group", pairKey: "51_52" },
+
+            // 53-59: PG Tambahan (Modul D2)
+            { id: 47, category: "PG_B", type: "single", text: "Pada $\\triangle ABC$, diketahui panjang sisi $b = 8\\text{ cm}$, $c = 10\\text{ cm}$, dan sudut apit $\\angle A = 30^\\circ$. Luas segitiga $ABC$ tersebut adalah...", options: ["A. $10\\text{ cm}^2$", "B. $20\\text{ cm}^2$", "C. $20\\sqrt{3}\\text{ cm}^2$", "D. $40\\text{ cm}^2$", "E. $40\\sqrt{3}\\text{ cm}^2$"], answer: 1 },
+            { id: 48, category: "PG_B", type: "single", text: "Diketahui $\\triangle PQR$ dengan panjang $p = 6\\text{ cm}$, $q = 12\\text{ cm}$, dan besar sudut $\\angle R = 60^\\circ$. Luas $\\triangle PQR$ adalah...", options: ["A. $18\\text{ cm}^2$", "B. $18\\sqrt{3}\\text{ cm}^2$", "C. $36\\text{ cm}^2$", "D. $36\\sqrt{3}\\text{ cm}^2$", "E. $72\\text{ cm}^2$"], answer: 1 },
+            { id: 49, category: "PG_B", type: "single", text: "Suatu segitiga $KLM$ memiliki panjang sisi-sisi $k = 5\\text{ cm}$, $l = 6\\text{ cm}$, dan $m = 7\\text{ cm}$. Luas segitiga $KLM$ adalah...", options: ["A. $6\\sqrt{6}\\text{ cm}^2$", "B. $6\\sqrt{3}\\text{ cm}^2$", "C. $12\\sqrt{6}\\text{ cm}^2$", "D. $18\\sqrt{6}\\text{ cm}^2$", "E. $36\\text{ cm}^2$"], answer: 0 },
+            { id: 50, category: "PG_B", type: "single", text: "Pada $\\triangle ABC$, diketahui panjang $a = 12\\text{ cm}$, besar $\\angle A = 45^\\circ$, dan $\\angle B = 60^\\circ$. Luas segitiga $ABC$ adalah...", options: ["A. $18(\\sqrt{3} + 1)\\text{ cm}^2$", "B. $18(\\sqrt{3} + 3)\\text{ cm}^2$", "C. $36(\\sqrt{3} - 1)\\text{ cm}^2$", "D. $72(\\sqrt{3} + 1)\\text{ cm}^2$", "E. $72(\\sqrt{3} - 1)\\text{ cm}^2$"], answer: 1 },
+            { id: 51, category: "PG_B", type: "single", text: "Diketahui segitiga $ABC$ memiliki panjang sisi $a = 7\\text{ cm}$, $b = 8\\text{ cm}$, dan $c = 9\\text{ cm}$. Nilai dari luas $\\triangle ABC$ adalah...", options: ["A. $12\\sqrt{5}\\text{ cm}^2$", "B. $12\\sqrt{3}\\text{ cm}^2$", "C. $24\\sqrt{5}\\text{ cm}^2$", "D. $24\\sqrt{2}\\text{ cm}^2$", "E. $36\\text{ cm}^2$"], answer: 0 },
+            { id: 52, category: "PG_B", type: "multiple", text: "Diketahui $\\triangle ABC$ dengan panjang sisi $b = 10\\text{ cm}$, $c = 12\\text{ cm}$, dan nilai $\\cos A = \\frac{3}{5}$. Manakah dari pernyataan berikut yang benar? (Jawaban bisa lebih dari satu)", options: ["A. Nilai $\\sin A = \\frac{4}{5}$", "B. Panjang sisi $a = 2\\sqrt{37}\\text{ cm}$", "C. Luas $\\triangle ABC$ adalah $48\\text{ cm}^2$", "D. Luas $\\triangle ABC$ adalah $36\\text{ cm}^2$"], answer: [0, 2] },
+            { id: 53, category: "PG_B", type: "single", text: "Pada sebuah segitiga sembarang $XYZ$, diketahui kelilingnya adalah $36\\text{ cm}$. Jika rasio perbandingan panjang sisi-sisinya $x : y : z = 3 : 4 : 5$, maka luas segitiga tersebut adalah...", options: ["A. $27\\text{ cm}^2$", "B. $48\\text{ cm}^2$", "C. $54\\text{ cm}^2$", "D. $108\\text{ cm}^2$", "E. $216\\text{ cm}^2$"], answer: 2 }
+        ];
+
+        let questionsData = []; 
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let studentData = {};
+        let timerInterval = null;
+        let startTime = null;
+        let cachedPayload = null;
+
+        function generateSeededRandom(seedStr) {
+            let h = 2166136261 >>> 0;
+            for (let i = 0; i < seedStr.length; i++) {
+                h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619);
+            }
+            return function() {
+                h += h << 13; h ^= h >>> 7;
+                h += h << 3;  h ^= h >>> 17;
+                return (h += h << 5) >>> 0;
+            };
+        }
+
+        function shuffleArrayWithSeed(array, rng) {
+            let list = [...array];
+            for (let i = list.length - 1; i > 0; i--) {
+                const j = Math.floor((rng() / 4294967296) * (i + 1));
+                [list[i], list[j]] = [list[j], list[i]];
+            }
+            return list;
+        }
+
+        // ALGORITMA SAMPLING: KUNCI TOTAL DARI ITEM SOAL TEPAT 20 ITEM
+        function generateBalancedQuestionSet(kelas, absen) {
+            const seedKey = `${kelas.replace(/\s+/g, '').toUpperCase()}_ABSEN_${absen}`;
+            const rng = generateSeededRandom(seedKey);
+
+            const poolPGA = shuffleArrayWithSeed(bankSoalMaster.filter(q => q.category === 'PG_A'), rng);
+            const poolMCMA = shuffleArrayWithSeed(bankSoalMaster.filter(q => q.category === 'MCMA'), rng);
+            const poolMatch = shuffleArrayWithSeed(bankSoalMaster.filter(q => q.category === 'MATCHING'), rng);
+            const poolPairAndPGB = shuffleArrayWithSeed(bankSoalMaster.filter(q => q.category === 'PAIR' || q.category === 'PG_B'), rng);
+
+            let result = [];
+            let currentItemCount = 0;
+
+            // Target porsi seimbang per kelompok
+            const pgaSelect = poolPGA.slice(0, 6);
+            result.push(...pgaSelect);
+            currentItemCount += pgaSelect.length;
+
+            const mcmaSelect = poolMCMA.slice(0, 3);
+            result.push(...mcmaSelect);
+            currentItemCount += mcmaSelect.length;
+
+            const matchSelect = poolMatch.slice(0, 3);
+            result.push(...matchSelect);
+            currentItemCount += matchSelect.length;
+
+            // Penuhi sisa kuota dari Modul Studi Kasus / PG Tambahan hingga tepat 20 item
+            for (let q of poolPairAndPGB) {
+                const qWeight = (q.category === 'PAIR') ? 2 : 1;
+                if (currentItemCount + qWeight <= TARGET_ITEM_COUNT) {
+                    result.push(q);
+                    currentItemCount += qWeight;
+                }
+                if (currentItemCount === TARGET_ITEM_COUNT) break;
+            }
+
+            // Jika masih ada sisa kuota ganjil, penuhi dari sisa pool PG/MCMA
+            if (currentItemCount < TARGET_ITEM_COUNT) {
+                const remainingPool = [...poolPGA.slice(6), ...poolMCMA.slice(3), ...poolMatch.slice(3)];
+                for (let q of remainingPool) {
+                    if (currentItemCount < TARGET_ITEM_COUNT) {
+                        result.push(q);
+                        currentItemCount += 1;
+                    }
+                    if (currentItemCount === TARGET_ITEM_COUNT) break;
+                }
+            }
+
+            return shuffleArrayWithSeed(result, rng);
+        }
+
+        function initAbsenDropdown() {
+            const selectAbsen = document.getElementById('absenSiswa');
+            selectAbsen.innerHTML = '<option value="" disabled selected>Pilih Absen</option>';
+            for (let i = 1; i <= 36; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = `Absen ${i}`;
+                selectAbsen.appendChild(opt);
+            }
+        }
+
+        async function checkIdentityAvailability() {
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+            const alertBox = document.getElementById('blockedAlert');
+            const alertMsg = document.getElementById('blockedMessage');
+            const btnStart = document.getElementById('btnStartQuiz');
+            const loader = document.getElementById('checkingLoader');
+
+            if (!kelas || !absen) return;
+
+            if (localStorage.getItem(`completed_quiz_math_${kelas}_${absen}`)) {
+                alertMsg.innerText = `[Akses Ditolak] Siswa Kelas ${kelas} - Nomor Absen ${absen} tercatat telah menyelesaikan ulangan di perangkat ini.`;
+                alertBox.classList.remove('hidden');
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            if (scriptUrl) {
+                loader.classList.remove('hidden');
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+
+                try {
+                    const checkUrl = `${scriptUrl}?kelas=${encodeURIComponent(kelas)}&absen=${encodeURIComponent(absen)}&_nocache=${Date.now()}`;
+                    const response = await fetch(checkUrl);
+                    const resData = await response.json();
+
+                    if (resData.alreadySubmitted) {
+                        alertMsg.innerText = `[Akses Ditolak] Siswa Kelas ${kelas} - Nomor Absen ${absen} SUDAH MENGERJAKAN (Tercatat di Google Sheets).`;
+                        alertBox.classList.remove('hidden');
+                        btnStart.disabled = true;
+                        btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        alertBox.classList.add('hidden');
+                        btnStart.disabled = false;
+                        btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                } catch (err) {
+                    alertBox.classList.add('hidden');
+                    btnStart.disabled = false;
+                    btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            }
+        }
+
+        document.getElementById('kelasSiswa').addEventListener('change', checkIdentityAvailability);
+        document.getElementById('absenSiswa').addEventListener('change', checkIdentityAvailability);
+
+        function openTokenModal() {
+            document.getElementById('inputTokenGuru').value = '';
+            document.getElementById('tokenErrorMsg').classList.add('hidden');
+            document.getElementById('tokenModal').classList.remove('hidden');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.add('hidden');
+        }
+
+        function verifyTeacherToken() {
+            const tokenInput = document.getElementById('inputTokenGuru').value.trim();
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+
+            if (tokenInput === SECRET_TEACHER_TOKEN) {
+                localStorage.removeItem(`completed_quiz_math_${kelas}_${absen}`);
+                localStorage.removeItem('active_quiz_math_session');
+                
+                closeTokenModal();
+                document.getElementById('blockedAlert').classList.add('hidden');
+                
+                const btnStart = document.getElementById('btnStartQuiz');
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                alert(`Akses dibuka oleh Guru! Siswa Kelas ${kelas} Absen ${absen} dapat mengerjakan ulang.`);
+            } else {
+                document.getElementById('tokenErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function saveCurrentSession() {
+            const sessionData = {
+                studentData,
+                questionsData,
+                currentQuestion,
+                userAnswers,
+                startTime
+            };
+            localStorage.setItem('active_quiz_math_session', JSON.stringify(sessionData));
+        }
+
+        function restoreSessionIfExist() {
+            const savedSession = localStorage.getItem('active_quiz_math_session');
+            if (savedSession) {
+                try {
+                    const data = JSON.parse(savedSession);
+                    studentData = data.studentData;
+                    questionsData = data.questionsData || [];
+                    currentQuestion = data.currentQuestion || 0;
+                    userAnswers = data.userAnswers || new Array(questionsData.length).fill(null);
+                    startTime = data.startTime || Date.now();
+
+                    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                    const remainingSeconds = TOTAL_DURATION_SECONDS - elapsedSeconds;
+
+                    if (remainingSeconds <= 0) {
+                        alert("Waktu pengerjaan telah habis saat dimuat ulang!");
+                        submitQuiz();
+                        return;
+                    }
+
+                    document.getElementById('identitasSection').classList.add('hidden');
+                    document.getElementById('quizSection').classList.remove('hidden');
+                    document.getElementById('headerTimer').classList.remove('hidden');
+                    document.getElementById('headerTimer').classList.add('flex');
+
+                    renderQuestionGrid();
+                    loadQuestion(currentQuestion);
+                    startTimer();
+                } catch(e) {
+                    localStorage.removeItem('active_quiz_math_session');
+                }
+            }
+        }
+
+        function startQuiz() {
+            const nama = document.getElementById('namaSiswa').value.trim();
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+            const tokenInput = document.getElementById('tokenSiswa').value.trim();
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+
+            if (!nama || !kelas || !absen || !tokenInput) {
+                alert("Harap lengkapi seluruh data identitas dan masukan token!");
+                return;
+            }
+
+            if (tokenInput !== STUDENT_QUIZ_TOKEN) {
+                alert("Token pengerjaan tidak valid! Silakan periksa kembali.");
+                return;
+            }
+
+            studentData = { nama, kelas, absen, scriptUrl };
+            questionsData = generateBalancedQuestionSet(kelas, absen);
+            userAnswers = new Array(questionsData.length).fill(null);
+
+            startTime = Date.now();
+            saveCurrentSession();
+
+            document.getElementById('identitasSection').classList.add('hidden');
+            document.getElementById('quizSection').classList.remove('hidden');
+            document.getElementById('headerTimer').classList.remove('hidden');
+            document.getElementById('headerTimer').classList.add('flex');
+
+            renderQuestionGrid();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            function updateTimerDisplay() {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = TOTAL_DURATION_SECONDS - elapsedSeconds;
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timerDisplay').innerText = "00:00";
+                    alert("Waktu ulangan 90 menit telah habis! Jawaban Anda dikirim otomatis.");
+                    submitQuiz();
+                    return;
+                }
+
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = remainingSeconds % 60;
+                document.getElementById('timerDisplay').innerText = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            updateTimerDisplay();
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+
+        function renderQuestionGrid() {
+            const grid = document.getElementById('questionGrid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < questionsData.length; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = `grid-btn-${i}`;
+                btn.innerText = (i + 1);
+                btn.onclick = () => loadQuestion(i);
+                btn.className = `h-9 w-full rounded-lg text-xs font-semibold flex items-center justify-center transition border ${getGridBtnStyle(i)}`;
+                grid.appendChild(btn);
+            }
+        }
+
+        function isQuestionAnswered(idx) {
+            const ans = userAnswers[idx];
+            const q = questionsData[idx];
+
+            if (!q) return false;
+
+            if (q.category === 'PAIR') {
+                if (!ans || typeof ans !== 'object') return false;
+                const q1Filled = ans.q1 !== undefined && ans.q1 !== null && (Array.isArray(ans.q1) ? ans.q1.length > 0 : true);
+                const q2Filled = ans.q2 !== undefined && ans.q2 !== null && (Array.isArray(ans.q2) ? ans.q2.every(v => v && v !== "") : true);
+                return q1Filled && q2Filled;
+            }
+            return ans !== null && (Array.isArray(ans) ? ans.length > 0 : true);
+        }
+
+        function getGridBtnStyle(idx) {
+            const isAnswered = isQuestionAnswered(idx);
+
+            if (idx === currentQuestion) {
+                return 'bg-indigo-600 text-white border-indigo-600 shadow-sm';
+            } else if (isAnswered) {
+                return 'bg-emerald-500 text-white border-emerald-500';
+            } else {
+                return 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+            }
+        }
+
+        function updateGridBtnStyles() {
+            questionsData.forEach((_, idx) => {
+                const btn = document.getElementById(`grid-btn-${idx}`);
+                if (btn) btn.className = `h-9 w-full rounded-lg text-xs font-semibold flex items-center justify-center transition border ${getGridBtnStyle(idx)}`;
+            });
+        }
+
+        function loadQuestion(idx) {
+            currentQuestion = idx;
+            saveCurrentSession();
+            const q = questionsData[currentQuestion];
+
+            document.getElementById('currentQuestionNum').innerText = (currentQuestion + 1);
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            // 1. Soal Menjodohkan
+            if (q.category === 'MATCHING') {
+                document.getElementById('questionText').innerHTML = `<b>Pertanyaan Menjodohkan:</b><br>${q.text}`;
+                
+                const selectedAns = userAnswers[currentQuestion] || "";
+                let matchHtml = `
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Pilih Jawaban Pasangan Pas (Kolom B):</label>
+                        <select onchange="selectMatchingAnswerSingle(this.value)" class="w-full p-3 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 font-semibold text-sm outline-none">
+                            <option value="" disabled ${selectedAns === "" ? "selected" : ""}>-- Pilih Jawaban --</option>
+                `;
+
+                matchingOptionsB.forEach(optB => {
+                    matchHtml += `
+                        <option value="${optB.code}" ${selectedAns === optB.code ? "selected" : ""}>
+                            ${optB.code}. ${optB.text}
+                        </option>
+                    `;
+                });
+
+                matchHtml += `</select></div>`;
+                optionsContainer.innerHTML = matchHtml;
+
+            // 2. Modul Pasangan Studi Kasus (2 Pertanyaan dalam 1 Halaman)
+            } else if (q.category === 'PAIR') {
+                const pair = pairQuestionsData[q.pairKey];
+                
+                document.getElementById('questionText').innerHTML = `
+                    <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100 text-slate-800 font-normal text-sm md:text-base leading-relaxed mb-2">
+                        ${pair.info}
+                    </div>
+                `;
+
+                if (!userAnswers[currentQuestion] || typeof userAnswers[currentQuestion] !== 'object') {
+                    userAnswers[currentQuestion] = { q1: null, q2: null };
+                }
+                const curAns = userAnswers[currentQuestion];
+
+                let pairHtml = `<div class="space-y-6">`;
+
+                // Sub-soal 1
+                pairHtml += `
+                    <div class="border border-slate-200 rounded-xl p-5 bg-white shadow-sm space-y-3">
+                        <div class="font-bold text-indigo-700 text-base border-b border-slate-100 pb-2 flex items-center space-x-2">
+                            <span class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-md text-xs font-bold">${pair.q1.title}</span>
+                        </div>
+                        <p class="text-sm font-medium text-slate-800 leading-normal">${pair.q1.text}</p>
+                        <div class="space-y-2 mt-3">
+                `;
+
+                if (pair.q1.type === 'multiple') {
+                    const selectedQ1 = Array.isArray(curAns.q1) ? curAns.q1 : [];
+                    pair.q1.options.forEach((opt, oIdx) => {
+                        const isChecked = selectedQ1.includes(oIdx);
+                        pairHtml += `
+                            <div onclick="togglePairOption(${currentQuestion}, 'q1', ${oIdx})" class="p-3.5 rounded-lg border text-sm cursor-pointer transition flex items-center space-x-3 ${isChecked ? 'border-indigo-600 bg-indigo-50/80 text-indigo-900 font-medium' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'}">
+                                <div class="w-5 h-5 rounded-md border flex items-center justify-center transition-colors flex-shrink-0 ${isChecked ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}">
+                                    ${isChecked ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                                </div>
+                                <span>${opt}</span>
+                            </div>
+                        `;
+                    });
+                } else if (pair.q1.type === 'single') {
+                    pair.q1.options.forEach((opt, oIdx) => {
+                        const isSelected = curAns.q1 === oIdx;
+                        pairHtml += `
+                            <div onclick="selectPairOption(${currentQuestion}, 'q1', ${oIdx})" class="p-3.5 rounded-lg border text-sm cursor-pointer transition flex items-center justify-between ${isSelected ? 'border-indigo-600 bg-indigo-50/80 text-indigo-900 font-medium' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'}">
+                                <span>${opt}</span>
+                                <div class="w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'}">
+                                    ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                pairHtml += `</div></div>`;
+
+                // Sub-soal 2
+                pairHtml += `
+                    <div class="border border-slate-200 rounded-xl p-5 bg-white shadow-sm space-y-3">
+                        <div class="font-bold text-indigo-700 text-base border-b border-slate-100 pb-2 flex items-center space-x-2">
+                            <span class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-md text-xs font-bold">${pair.q2.title}</span>
+                        </div>
+                        <p class="text-sm font-medium text-slate-800 leading-normal">${pair.q2.text}</p>
+                        <div class="space-y-2 mt-3">
+                `;
+
+                if (pair.q2.type === 'single') {
+                    pair.q2.options.forEach((opt, oIdx) => {
+                        const isSelected = curAns.q2 === oIdx;
+                        pairHtml += `
+                            <div onclick="selectPairOption(${currentQuestion}, 'q2', ${oIdx})" class="p-3.5 rounded-lg border text-sm cursor-pointer transition flex items-center justify-between ${isSelected ? 'border-indigo-600 bg-indigo-50/80 text-indigo-900 font-medium' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'}">
+                                <span>${opt}</span>
+                                <div class="w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'}">
+                                    ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else if (pair.q2.type === 'matching_sub') {
+                    const subAns = Array.isArray(curAns.q2) ? curAns.q2 : ["", "", ""];
+                    pairHtml += `
+                        <div class="overflow-x-auto border border-slate-200 rounded-lg bg-white mt-2">
+                            <table class="w-full text-left text-xs md:text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-indigo-50/80 text-indigo-900 border-b border-slate-200">
+                                        <th class="p-2.5 font-bold w-10 text-center">No</th>
+                                        <th class="p-2.5 font-bold">Pertanyaan</th>
+                                        <th class="p-2.5 font-bold w-40 text-center">Pilih Jawaban</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                    `;
+                    pair.q2.items.forEach((item, itemIdx) => {
+                        const selVal = subAns[itemIdx] || "";
+                        pairHtml += `
+                            <tr>
+                                <td class="p-2.5 text-center font-bold text-slate-600">${itemIdx + 1}</td>
+                                <td class="p-2.5 font-medium text-slate-800">${item.text}</td>
+                                <td class="p-2.5 text-center">
+                                    <select onchange="selectPairMatching(${currentQuestion}, ${itemIdx}, this.value)" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 font-semibold text-xs outline-none">
+                                        <option value="" disabled ${selVal === "" ? "selected" : ""}>-- Pilih --</option>
+                        `;
+                        pair.q2.options.forEach(optB => {
+                            pairHtml += `<option value="${optB.code}" ${selVal === optB.code ? "selected" : ""}>${optB.text}</option>`;
+                        });
+                        pairHtml += `</select></td></tr>`;
+                    });
+                    pairHtml += `</tbody></table></div>`;
+                }
+                pairHtml += `</div></div></div>`;
+
+                optionsContainer.innerHTML = pairHtml;
+
+            // 3. Soal Pilihan Ganda Single
+            } else if (q.type === 'single') {
+                document.getElementById('questionText').innerHTML = q.text;
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = userAnswers[currentQuestion] === optIdx;
+                    const optEl = document.createElement('div');
+                    optEl.onclick = () => selectSingleOption(optIdx);
+                    optEl.className = `p-4 rounded-xl border text-sm cursor-pointer transition flex items-center justify-between ${
+                        isSelected 
+                        ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900 font-medium' 
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`;
+
+                    optEl.innerHTML = `
+                        <span>${opt}</span>
+                        <div class="w-5 h-5 rounded-full border flex items-center justify-center ${
+                            isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'
+                        }">
+                            ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                        </div>
+                    `;
+                    optionsContainer.appendChild(optEl);
+                });
+
+            // 4. Soal Pilihan Ganda Kompleks
+            } else if (q.type === 'multiple') {
+                document.getElementById('questionText').innerHTML = q.text;
+                if (!Array.isArray(userAnswers[currentQuestion])) {
+                    userAnswers[currentQuestion] = [];
+                }
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = userAnswers[currentQuestion].includes(optIdx);
+                    const optEl = document.createElement('div');
+                    optEl.onclick = () => toggleMultipleOption(optIdx);
+                    optEl.className = `p-4 rounded-xl border text-sm cursor-pointer transition flex items-center space-x-3 ${
+                        isSelected 
+                        ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900 font-medium' 
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`;
+
+                    optEl.innerHTML = `
+                        <div class="w-5 h-5 rounded-md border flex items-center justify-center transition-colors flex-shrink-0 ${
+                            isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'
+                        }">
+                            ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                        </div>
+                        <span class="leading-normal">${opt}</span>
+                    `;
+                    optionsContainer.appendChild(optEl);
+                });
+            }
+
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').innerText = currentQuestion === questionsData.length - 1 ? 'Selesai' : 'Berikutnya';
+
+            updateGridBtnStyles();
+            updateAnsweredCount();
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectSingleOption(optIdx) {
+            userAnswers[currentQuestion] = optIdx;
+            saveCurrentSession();
+            loadQuestion(currentQuestion);
+        }
+
+        function toggleMultipleOption(optIdx) {
+            let currentAns = userAnswers[currentQuestion];
+            if (!Array.isArray(currentAns)) currentAns = [];
+
+            const pos = currentAns.indexOf(optIdx);
+            if (pos > -1) {
+                currentAns.splice(pos, 1);
+            } else {
+                currentAns.push(optIdx);
+            }
+
+            userAnswers[currentQuestion] = currentAns;
+            saveCurrentSession();
+            loadQuestion(currentQuestion);
+        }
+
+        function selectMatchingAnswerSingle(val) {
+            userAnswers[currentQuestion] = val;
+            saveCurrentSession();
+            updateGridBtnStyles();
+            updateAnsweredCount();
+        }
+
+        function selectPairOption(qIdx, subKey, val) {
+            if (!userAnswers[qIdx] || typeof userAnswers[qIdx] !== 'object') {
+                userAnswers[qIdx] = { q1: null, q2: null };
+            }
+            userAnswers[qIdx][subKey] = val;
+            saveCurrentSession();
+            loadQuestion(qIdx);
+        }
+
+        function togglePairOption(qIdx, subKey, val) {
+            if (!userAnswers[qIdx] || typeof userAnswers[qIdx] !== 'object') {
+                userAnswers[qIdx] = { q1: [], q2: null };
+            }
+            let curList = Array.isArray(userAnswers[qIdx][subKey]) ? userAnswers[qIdx][subKey] : [];
+            const pos = curList.indexOf(val);
+            if (pos > -1) {
+                curList.splice(pos, 1);
+            } else {
+                curList.push(val);
+            }
+            userAnswers[qIdx][subKey] = curList;
+            saveCurrentSession();
+            loadQuestion(qIdx);
+        }
+
+        function selectPairMatching(qIdx, subIdx, val) {
+            if (!userAnswers[qIdx] || typeof userAnswers[qIdx] !== 'object') {
+                userAnswers[qIdx] = { q1: null, q2: ["", "", ""] };
+            }
+            if (!Array.isArray(userAnswers[qIdx].q2)) {
+                userAnswers[qIdx].q2 = ["", "", ""];
+            }
+            userAnswers[qIdx].q2[subIdx] = val;
+            saveCurrentSession();
+            updateGridBtnStyles();
+            updateAnsweredCount();
+        }
+
+        function navigateQuestion(direction) {
+            let nextIdx = currentQuestion + direction;
+
+            if (nextIdx >= 0 && nextIdx < questionsData.length) {
+                loadQuestion(nextIdx);
+            } else if (nextIdx >= questionsData.length) {
+                confirmSubmission();
+            }
+        }
+
+        function updateAnsweredCount() {
+            let answeredItemCount = 0;
+
+            for (let i = 0; i < questionsData.length; i++) {
+                const ans = userAnswers[i];
+                const q = questionsData[i];
+
+                if (q.category === 'PAIR') {
+                    if (ans && typeof ans === 'object') {
+                        if (ans.q1 !== undefined && ans.q1 !== null && (Array.isArray(ans.q1) ? ans.q1.length > 0 : true)) answeredItemCount++;
+                        if (ans.q2 !== undefined && ans.q2 !== null && (Array.isArray(ans.q2) ? ans.q2.every(v => v && v !== "") : true)) answeredItemCount++;
+                    }
+                } else {
+                    if (ans !== null && (Array.isArray(ans) ? ans.length > 0 : true)) answeredItemCount++;
+                }
+            }
+
+            document.getElementById('answeredCount').innerText = answeredItemCount;
+        }
+
+        function confirmSubmission() {
+            let answeredItemCount = 0;
+
+            for (let i = 0; i < questionsData.length; i++) {
+                const ans = userAnswers[i];
+                const q = questionsData[i];
+
+                if (q.category === 'PAIR') {
+                    if (ans && typeof ans === 'object') {
+                        if (ans.q1 !== undefined && ans.q1 !== null && (Array.isArray(ans.q1) ? ans.q1.length > 0 : true)) answeredItemCount++;
+                        if (ans.q2 !== undefined && ans.q2 !== null && (Array.isArray(ans.q2) ? ans.q2.every(v => v && v !== "") : true)) answeredItemCount++;
+                    }
+                } else {
+                    if (ans !== null && (Array.isArray(ans) ? ans.length > 0 : true)) answeredItemCount++;
+                }
+            }
+
+            const remainingItems = TARGET_ITEM_COUNT - answeredItemCount;
+
+            let msg = `Apakah Anda yakin ingin menyelesaikan ulangan ini?`;
+            if (remainingItems > 0) {
+                msg = `Masih ada ${remainingItems} item soal yang belum dijawab. Yakin tetap ingin mengirim jawaban?`;
+            }
+
+            if (confirm(msg)) {
+                submitQuiz();
+            }
+        }
+
+        function submitQuiz() {
+            try {
+                if (timerInterval) clearInterval(timerInterval);
+
+                let scoreCount = 0;
+
+                questionsData.forEach((q, idx) => {
+                    const userAns = userAnswers[idx];
+
+                    if (q.category === 'PG_A' || q.category === 'PG_B') {
+                        if (q.type === 'single') {
+                            if (userAns === q.answer) scoreCount++;
+                        } else if (q.type === 'multiple') {
+                            if (Array.isArray(userAns) && Array.isArray(q.answer)) {
+                                const sortedUser = [...userAns].sort().join(',');
+                                const sortedCorrect = [...q.answer].sort().join(',');
+                                if (sortedUser === sortedCorrect) scoreCount++;
+                            }
+                        }
+                    } else if (q.category === 'MCMA') {
+                        if (Array.isArray(userAns) && Array.isArray(q.answer)) {
+                            const sortedUser = [...userAns].sort().join(',');
+                            const sortedCorrect = [...q.answer].sort().join(',');
+                            if (sortedUser === sortedCorrect) scoreCount++;
+                        }
+                    } else if (q.category === 'MATCHING') {
+                        if (userAns === q.answer) scoreCount++;
+                    } else if (q.category === 'PAIR') {
+                        const pair = pairQuestionsData[q.pairKey];
+                        const curAns = userAns || {};
+
+                        // Poin Sub-soal 1
+                        if (pair.q1.type === 'single') {
+                            if (curAns.q1 === pair.q1.answer) scoreCount++;
+                        } else if (pair.q1.type === 'multiple') {
+                            if (Array.isArray(curAns.q1) && Array.isArray(pair.q1.answer)) {
+                                const sortedUser = [...curAns.q1].sort().join(',');
+                                const sortedCorrect = [...pair.q1.answer].sort().join(',');
+                                if (sortedUser === sortedCorrect) scoreCount++;
+                            }
+                        }
+
+                        // Poin Sub-soal 2
+                        if (pair.q2.type === 'single') {
+                            if (curAns.q2 === pair.q2.answer) scoreCount++;
+                        } else if (pair.q2.type === 'matching_sub') {
+                            if (Array.isArray(curAns.q2) && curAns.q2.length === 3) {
+                                const correctList = pair.q2.items.map(it => it.ans);
+                                if (curAns.q2.join(',') === correctList.join(',')) scoreCount++;
+                            }
+                        }
+                    }
+                });
+
+                // Kalkulasi Nilai Akhir berbasis skala Tepat 20 Poin Total
+                const percentage = Math.round((scoreCount / TARGET_ITEM_COUNT) * 100);
+
+                if (studentData.kelas && studentData.absen) {
+                    localStorage.setItem(`completed_quiz_math_${studentData.kelas}_${studentData.absen}`, new Date().toISOString());
+                }
+                localStorage.removeItem('active_quiz_math_session');
+
+                document.getElementById('quizSection').classList.add('hidden');
+                document.getElementById('headerTimer').classList.add('hidden');
+                document.getElementById('resultSection').classList.remove('hidden');
+
+                document.getElementById('resNama').innerText = studentData.nama || "-";
+                document.getElementById('resKelasAbsen').innerText = `${studentData.kelas || "-"} / Absen ${studentData.absen || "-"}`;
+                document.getElementById('resSkor').innerText = `${scoreCount} / ${TARGET_ITEM_COUNT}`;
+                document.getElementById('resNilai').innerText = percentage;
+
+                cachedPayload = {
+                    nama: studentData.nama,
+                    kelas: studentData.kelas,
+                    absen: studentData.absen,
+                    skor: `${scoreCount}/${TARGET_ITEM_COUNT}`,
+                    persentase: percentage
+                };
+
+                sendDataToSpreadsheet(cachedPayload);
+
+            } catch (error) {
+                console.error("Gagal mengirimkan ulangan:", error);
+                alert("Terjadi kesalahan teknis saat memproses jawaban. Silakan coba lagi.");
+            }
+        }
+
+        function sendDataToSpreadsheet(payload) {
+            const statusBox = document.getElementById('submissionStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            const btnRetry = document.getElementById('btnRetrySubmit');
+
+            statusBox.className = "mt-6 p-4 bg-indigo-50 rounded-xl text-xs font-semibold text-indigo-700 flex flex-col items-center justify-center space-y-2 border border-indigo-200";
+            statusIcon.className = "fas fa-spinner fa-spin text-base";
+            statusText.innerText = "Mengirimkan data nilai ke Google Sheets...";
+            btnRetry.classList.add('hidden');
+
+            if (!navigator.onLine) {
+                showSubmissionError("Koneksi internet Anda terputus! Periksa koneksi internet lalu tekan tombol coba lagi.");
+                return;
+            }
+
+            if (studentData.scriptUrl) {
+                fetch(studentData.scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                })
+                .then(() => {
+                    statusBox.className = "mt-6 p-4 bg-emerald-50 rounded-xl text-xs font-semibold text-emerald-700 flex flex-col items-center justify-center space-y-2 border border-emerald-200";
+                    statusIcon.className = "fas fa-check-circle text-base";
+                    statusText.innerText = "Status: Data Jawaban Berhasil Terkirim ke Google Sheets";
+                    btnRetry.classList.add('hidden');
+                })
+                .catch(err => {
+                    showSubmissionError("Gagal terhubung ke Google Sheets. Jaringan terganggu.");
+                });
+            }
+        }
+
+        function showSubmissionError(msg) {
+            const statusBox = document.getElementById('submissionStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            const btnRetry = document.getElementById('btnRetrySubmit');
+
+            statusBox.className = "mt-6 p-4 bg-rose-50 rounded-xl text-xs font-semibold text-rose-700 flex flex-col items-center justify-center space-y-2 border border-rose-200";
+            statusIcon.className = "fas fa-exclamation-triangle text-base text-rose-600";
+            statusText.innerText = msg;
+            btnRetry.classList.remove('hidden');
+            btnRetry.classList.add('flex');
+        }
+
+        function retrySubmitData() {
+            if (cachedPayload) {
+                sendDataToSpreadsheet(cachedPayload);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initAbsenDropdown();
+            restoreSessionIfExist();
+        });
+    </script>
+</body>
+</html>
